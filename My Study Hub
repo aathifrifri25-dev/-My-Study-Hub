@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Study Hub</title>
+<link rel="manifest" id="manifestLink">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<style>
+  :root {
+    --bg: #1e1e2f; --headerbg: #292945; --navbg: #22223a;
+    --cardbg: #2b2b45; --text: #fff; --btn: #4c6ef5;
+  }
+  body.theme-light {
+    --bg: #f4f4f8; --headerbg: #e0e0f0; --navbg: #d0d0e8;
+    --cardbg: #ffffff; --text: #111; --btn: #4c6ef5;
+  }
+  body.theme-ocean {
+    --bg: #0a2e3d; --headerbg: #0f3f52; --navbg: #0c3646;
+    --cardbg: #124a61; --text: #e6f7ff; --btn: #17a2b8;
+  }
+  body.theme-forest {
+    --bg: #1a2e1a; --headerbg: #234023; --navbg: #1e3a1e;
+    --cardbg: #2d4d2d; --text: #e8f5e8; --btn: #4caf50;
+  }
+  body.theme-sunset {
+    --bg: #2e1a2e; --headerbg: #402340; --navbg: #3a1e3a;
+    --cardbg: #4d2d4d; --text: #fce8fc; --btn: #e91e63;
+  }
+  body { font-family: Arial, sans-serif; margin: 0; background: var(--bg); color: var(--text); }
+  header { background: var(--headerbg); padding: 20px; text-align: center; }
+  nav { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; background: var(--navbg); padding: 10px; }
+  nav a { color: var(--text); text-decoration: none; }
+  section { padding: 20px; }
+  .card { background: var(--cardbg); padding: 15px; margin-bottom: 15px; border-radius: 8px; }
+  button { padding: 10px 15px; border: none; border-radius: 5px; background: var(--btn); color: #fff; margin: 3px; cursor:pointer; }
+  input, textarea, select { padding: 8px; border-radius: 5px; border: none; margin-right: 5px; font-family: Arial, sans-serif; }
+  .quiz-option { display:block; width:100%; text-align:left; margin:5px 0; }
+  .quiz-correct { background: #2e7d32 !important; }
+  .quiz-wrong { background: #c62828 !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📚 My Study Hub</h1>
+</header>
+
+<div id="loginScreen" style="text-align:center; padding:40px;">
+  <h2>Login to your Study Hub</h2>
+  <input id="usernameInput" placeholder="Enter your name">
+  <button onclick="login()">Enter</button>
+</div>
+
+<div id="appContent" style="display:none;">
+  <p style="text-align:center;">Logged in as <b id="currentUserLabel"></b>
+    <button onclick="logout()">Logout</button><br>
+    <label style="margin-top:8px; display:inline-block;">Theme:
+      <select id="themeSelect" onchange="changeTheme(this.value)">
+        <option value="theme-dark">Dark</option>
+        <option value="theme-light">Light</option>
+        <option value="theme-ocean">Ocean Blue</option>
+        <option value="theme-forest">Forest Green</option>
+        <option value="theme-sunset">Sunset Purple</option>
+      </select>
+    </label>
+  </p>
+
+  <nav>
+    <a href="#notes">Notes</a>
+    <a href="#timer">Timer</a>
+    <a href="#todo">To-Do</a>
+    <a href="#flashcards">Flashcards</a>
+    <a href="#progress">Progress</a>
+    <a href="#schedule">Schedule</a>
+    <a href="#aiqa">Ask AI</a>
+  </nav>
+
+  <section id="notes">
+    <h2>Notes</h2>
+    <div class="card">
+      <textarea id="notesArea" rows="6" style="width:100%;" placeholder="Type your notes here..."></textarea>
+      <br><br>
+      <button onclick="saveNotes()">Save</button>
+      <button onclick="exportNotes()">Export as .txt</button>
+      <input type="file" id="importFile" accept=".txt" style="display:none;" onchange="importNotes(event)">
+      <button onclick="document.getElementById('importFile').click()">Import .txt</button>
+    </div>
+  </section>
+
+  <section id="timer">
+    <h2>Study Timer</h2>
+    <div class="card">
+      <div>
+        <button onclick="setPreset(5)">5m</button>
+        <button onclick="setPreset(10)">10m</button>
+        <button onclick="setPreset(15)">15m</button>
+        <button onclick="setPreset(25)">25m</button>
+        <button onclick="setPreset(50)">50m</button>
+      </div>
+      <p id="time" style="font-size:2em;">25:00</p>
+      <button onclick="startTimer()">Start</button>
+    </div>
+  </section>
+
+  <section id="todo">
+    <h2>To-Do List</h2>
+    <div class="card">
+      <input id="taskInput" placeholder="New task">
+      <button onclick="addTask()">Add</button>
+      <ul id="taskList"></ul>
+    </div>
+  </section>
+
+  <section id="flashcards">
+    <h2>Flashcards</h2>
+    <div class="card">
+      <input id="qInput" placeholder="Question">
+      <input id="aInput" placeholder="Answer">
+      <button onclick="addCard()">Add Card</button>
+
+      <div id="cardDisplay" style="margin-top:20px; cursor:pointer;">
+        <p id="cardText">No flashcards yet.</p>
+      </div>
+      <button onclick="nextCard()">Next Card</button>
+      <button onclick="editCard()">Edit</button>
+      <button onclick="deleteCard()">Delete</button>
+
+      <hr style="margin:20px 0; opacity:0.3;">
+      <h3>Quiz Mode</h3>
+      <button onclick="startQuiz()">Start Quiz</button>
+      <div id="quizArea" style="margin-top:15px;"></div>
+      <p id="quizScore" style="margin-top:10px;"></p>
+    </div>
+  </section>
+
+  <section id="progress">
+    <h2>Progress</h2>
+    <div class="card">
+      <p>✅ Tasks completed: <span id="tasksCompletedCount">0</span></p>
+      <p>🔁 Flashcards reviewed: <span id="reviewedCountLabel">0</span></p>
+      <p>🎯 Quiz score: <span id="quizScoreLabel">0</span> / <span id="quizTotalLabel">0</span></p>
+    </div>
+  </section>
+
+  <section id="schedule">
+    <h2>Study Schedule</h2>
+    <div class="card">
+      <input type="date" id="scheduleDate">
+      <input id="scheduleTask" placeholder="What to study">
+      <button onclick="addSchedule()">Add</button>
+      <ul id="scheduleList"></ul>
+    </div>
+  </section>
+
+  <section id="aiqa">
+    <h2>Ask AI</h2>
+    <div class="card">
+      <textarea id="aiQuestion" rows="3" style="width:100%;" placeholder="Type your study question..."></textarea>
+      <br><br>
+      <button onclick="askAI()">Ask</button>
+      <p id="aiAnswer" style="white-space:pre-wrap; margin-top:15px;"></p>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  const GEMINI_API_KEY = "PASTE_YOUR_KEY_HERE";
+
+  // ---- Basic "Add to Home Screen" manifest (works partially without hosting) ----
+  const manifestData = {
+    name: "My Study Hub",
+    short_name: "StudyHub",
+    start_url: ".",
+    display: "standalone",
+    background_color: "#1e1e2f",
+    theme_color: "#292945"
+  };
+  const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
+  document.getElementById('manifestLink').href = URL.createObjectURL(manifestBlob);
+
+  let currentUser = null;
+
+  function login(){
+    const name = document.getElementById('usernameInput').value.trim();
+    if(!name) return;
+    currentUser = name;
+    localStorage.setItem('lastUser', name);
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appContent').style.display = 'block';
+    document.getElementById('currentUserLabel').textContent = name;
+    loadUserData();
+  }
+
+  function logout(){
+    currentUser = null;
+    document.getElementById('appContent').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'block';
+    document.getElementById('usernameInput').value = '';
+  }
+
+  window.onload = function(){
+    const savedTheme = localStorage.getItem('themeName') || 'theme-dark';
+    if(savedTheme !== 'theme-dark'){
+      document.body.classList.add(savedTheme);
+    }
+    const last = localStorage.getItem('lastUser');
+    if(last){
+      document.getElementById('usernameInput').value = last;
+      login();
+    }
+  };
+
+  function changeTheme(themeName){
+    document.body.className = '';
+    if(themeName !== 'theme-dark'){
+      document.body.classList.add(themeName);
+    }
+    localStorage.setItem('themeName', themeName);
+  }
+
+  function userKey(key){
+    return currentUser + '_' + key;
+  }
+
+  // ---- Timer ----
+  let seconds = 25*60;
+  let timerRunning = false;
+  function updateTimeDisplay(){
+    const m = String(Math.floor(seconds/60)).padStart(2,'0');
+    const s = String(seconds%60).padStart(2,'0');
+    document.getElementById('time').textContent = m + ':' + s;
+  }
+  function setPreset(min){
+    if(timerRunning) return;
+    seconds = min*60;
+    updateTimeDisplay();
+  }
+  function startTimer(){
+    if(timerRunning) return;
+    timerRunning = true;
+    const interval = setInterval(function(){
+      if(seconds<=0){ clearInterval(interval); timerRunning=false; playBeep(); return; }
+      seconds--;
+      updateTimeDisplay();
+    },1000);
+  }
+  function playBeep(){
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = 880;
+    osc.connect(ctx.destination);
+    osc.start();
+    setTimeout(function(){ osc.stop(); }, 500);
+  }
+
+  // ---- Notes ----
+  function saveNotes(){
+    localStorage.setItem(userKey('notes'), document.getElementById('notesArea').value);
+  }
+  function exportNotes(){
+    const text = document.getElementById('notesArea').value;
+    const blob = new Blob([text], {type: 'text/plain'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = currentUser + '_notes.txt';
+    a.click();
+  }
+  function importNotes(event){
+    const file = event.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e){
+      document.getElementById('notesArea').value = e.target.result;
+      saveNotes();
+    };
+    reader.readAsText(file);
+  }
+
+  // ---- To-Do + progress ----
+  let tasks = [];
+  let tasksCompletedCount = 0;
+  function renderTasks(){
+    const list = document.getElementById('taskList');
+    list.innerHTML = '';
+    tasks.forEach(function(t, i){
+      const li = document.createElement('li');
+      li.textContent = t;
+      li.style.cursor = 'pointer';
+      li.title = 'Click when done';
+      li.onclick = function(){
+        tasks.splice(i,1);
+        tasksCompletedCount++;
+        saveProgress();
+        saveTasks();
+      };
+      list.appendChild(li);
+    });
+  }
+  function saveTasks(){
+    localStorage.setItem(userKey('tasks'), JSON.stringify(tasks));
+    renderTasks();
+  }
+  function addTask(){
+    const input = document.getElementById('taskInput');
+    if(!input.value.trim()) return;
+    tasks.push(input.value);
+    input.value='';
+    saveTasks();
+  }
+
+  // ---- Flashcards + progress ----
+  let cards = [];
+  let cardIndex = 0;
+  let showingAnswer = false;
+  let reviewedCount = 0;
+
+  function saveCards(){
+    localStorage.setItem(userKey('cards'), JSON.stringify(cards));
+  }
+  function addCard(){
+    const q = document.getElementById('qInput').value.trim();
+    const a = document.getElementById('aInput').value.trim();
+    if(!q || !a) return;
+    cards.push({q:q, a:a});
+    saveCards();
+    document.getElementById('qInput').value = '';
+    document.getElementById('aInput').value = '';
+    cardIndex = cards.length - 1;
+    showingAnswer = false;
+    displayCard();
+  }
+  function displayCard(){
+    const el = document.getElementById('cardText');
+    if(cards.length === 0){ el.textContent = 'No flashcards yet.'; return; }
+    const c = cards[cardIndex];
+    el.textContent = showingAnswer ? c.a : c.q;
+  }
+  function nextCard(){
+    if(cards.length === 0) return;
+    cardIndex = (cardIndex + 1) % cards.length;
+    showingAnswer = false;
+    reviewedCount++;
+    saveProgress();
+    displayCard();
+  }
+  function editCard(){
+    if(cards.length === 0) return;
+    const c = cards[cardIndex];
+    const newQ = prompt('Edit Question:', c.q);
+    if(newQ === null) return;
+    const newA = prompt('Edit Answer:', c.a);
+    if(newA === null) return;
+    cards[cardIndex] = {q: newQ, a: newA};
+    saveCards();
+    showingAnswer = false;
+    displayCard();
+  }
+  function deleteCard(){
+    if(cards.length === 0) return;
+    if(!confirm('Delete this flashcard?')) return;
+    cards.splice(cardIndex, 1);
+    if(cardIndex >= cards.length) cardIndex = 0;
+    saveCards();
+    showingAnswer = false;
+    displayCard();
+  }
+
+  // ---- Quiz mode ----
+  let quizScore = 0;
+  let quizTotal = 0;
+  let quizQuestions = [];
+  let quizIndex = 0;
+
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i = a.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i+1));
+      const tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  function startQuiz(){
+    if(cards.length < 2){
+      document.getElementById('quizArea').textContent = 'Add at least 2 flashcards to start a quiz.';
+      return;
+    }
+    quizQuestions = shuffle(cards);
+    quizIndex = 0;
+    showQuizQuestion();
+  }
+
+  function showQuizQuestion(){
+    const area = document.getElementById('quizArea');
+    if(quizIndex >= quizQuestions.length){
+      area.innerHTML = '<p>Quiz complete! Score: ' + quizScore + ' / ' + quizTotal + '</p>';
+      saveProgress();
+      return;
+    }
+    const current = quizQuestions[quizIndex];
+    const wrongPool = cards.filter(function(c){ return c.a !== current.a; });
+    const wrongChoices = shuffle(wrongPool).slice(0, 3).map(function(c){ return c.a; });
+    const options = shuffle([current.a].concat(wrongChoices));
+
+    let html = '<p><b>' + current.q + '</b></p>';
+    options.forEach(function(opt){
+      html += '<button class="quiz-option" onclick="answerQuiz(this, ' + (opt === current.a) + ')">' + opt + '</button>';
+    });
+    area.innerHTML = html;
+  }
+
+  function answerQuiz(btn, isCorrect){
+    const buttons = document.querySelectorAll('#quizArea .quiz-option');
+    buttons.forEach(function(b){ b.onclick = null; });
+    quizTotal++;
+    if(isCorrect){
+      quizScore++;
+      btn.classList.add('quiz-correct');
+    } else {
+      btn.classList.add('quiz-wrong');
+    }
+    saveProgress();
+    setTimeout(function(){
+      quizIndex++;
+      showQuizQuestion();
+    }, 800);
+  }
+
+  // ---- Progress ----
+  function saveProgress(){
+    localStorage.setItem(userKey('completedCount'), tasksCompletedCount);
+    localStorage.setItem(userKey('reviewedCount'), reviewedCount);
+    localStorage.setItem(userKey('quizScore'), quizScore);
+    localStorage.setItem(userKey('quizTotal'), quizTotal);
+    document.getElementById('tasksCompletedCount').textContent = tasksCompletedCount;
+    document.getElementById('reviewedCountLabel').textContent = reviewedCount;
+    document.getElementById('quizScoreLabel').textContent = quizScore;
+    document.getElementById('quizTotalLabel').textContent = quizTotal;
+  }
+
+  // ---- Schedule ----
+  let schedule = [];
+  function renderSchedule(){
+    const list = document.getElementById('scheduleList');
+    list.innerHTML = '';
+    const sorted = schedule.slice().sort(function(a,b){ return a.date.localeCompare(b.date); });
+    sorted.forEach(function(item){
+      const li = document.createElement('li');
+      li.textContent = item.date + ' — ' + item.task;
+      li.style.cursor = 'pointer';
+      li.title = 'Click to remove';
+      li.onclick = function(){
+        schedule = schedule.filter(function(s){ return s !== item; });
+        saveSchedule();
+      };
+      list.appendChild(li);
+    });
+  }
+  function saveSchedule(){
+    localStorage.setItem(userKey('schedule'), JSON.stringify(schedule));
+    renderSchedule();
+  }
+  function addSchedule(){
+    const date = document.getElementById('scheduleDate').value;
+    const task = document.getElementById('scheduleTask').value.trim();
+    if(!date || !task) return;
+    schedule.push({date: date, task: task});
+    document.getElementById('scheduleTask').value = '';
+    saveSchedule();
+  }
+
+  // ---- AI Q&A ----
+  async function askAI(){
+    const question = document.getElementById('aiQuestion').value.trim();
+    const answerEl = document.getElementById('aiAnswer');
+    if(!question){ return; }
+    answerEl.textContent = "Thinking...";
+
+    try {
+      const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=" + GEMINI_API_KEY;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: question }] }]
+        })
+      });
+      const data = await response.json();
+      if(data.candidates && data.candidates[0]){
+        answerEl.textContent = data.candidates[0].content.parts[0].text;
+      } else {
+        answerEl.textContent = "Error: " + (data.error && data.error.message ? data.error.message : "Something went wrong. Check your API key.");
+      }
+    } catch(err){
+      answerEl.textContent = "Error: " + err.message;
+    }
+  }
+
+  function loadUserData(){
+    tasks = JSON.parse(localStorage.getItem(userKey('tasks')) || '[]');
+    cards = JSON.parse(localStorage.getItem(userKey('cards')) || '[]');
+    schedule = JSON.parse(localStorage.getItem(userKey('schedule')) || '[]');
+    tasksCompletedCount = parseInt(localStorage.getItem(userKey('completedCount')) || '0');
+    reviewedCount = parseInt(localStorage.getItem(userKey('reviewedCount')) || '0');
+    quizScore = parseInt(localStorage.getItem(userKey('quizScore')) || '0');
+    quizTotal = parseInt(localStorage.getItem(userKey('quizTotal')) || '0');
+    document.getElementById('notesArea').value = localStorage.getItem(userKey('notes')) || '';
+    const savedTheme = localStorage.getItem('themeName') || 'theme-dark';
+    document.getElementById('themeSelect').value = savedTheme;
+    cardIndex = 0;
+    showingAnswer = false;
+    seconds = 25*60;
+    updateTimeDisplay();
+    renderTasks();
+    renderSchedule();
+    displayCard();
+    saveProgress();
+    document.getElementById('cardDisplay').onclick = function(){
+      if(cards.length === 0) return;
+      showingAnswer = !showingAnswer;
+      displayCard();
+    };
+  }
+</script>
+
+</body>
+</html>
